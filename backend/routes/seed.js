@@ -1,0 +1,157 @@
+const express = require('express');
+const router = express.Router();
+const bcrypt = require('bcryptjs');
+const User = require('../models/User');
+const Project = require('../models/Project');
+const Assignment = require('../models/Assignment');
+
+// Sample data
+const managers = [
+    {
+        email: 'manager@gmail.com',
+        name: 'Demo Manager',
+        role: 'manager',
+        password: '12345'
+    }
+];
+
+const engineers = [
+    {
+        email: 'engineer@gmail.com',
+        name: 'Demo Engineer',
+        role: 'engineer',
+        password: '12345',
+        skills: ['React', 'Node.js'],
+        seniority: 'senior',
+        maxCapacity: 100,
+        department: 'Frontend'
+    },
+    {
+        email: 'alice.dev@company.com',
+        name: 'Alice Johnson',
+        role: 'engineer',
+        password: '12345',
+        skills: ['React', 'Node.js', 'TypeScript'],
+        seniority: 'senior',
+        maxCapacity: 100,
+        department: 'Frontend'
+    },
+    {
+        email: 'bob.dev@company.com',
+        name: 'Bob Smith',
+        role: 'engineer',
+        password: '12345',
+        skills: ['Python', 'Django', 'AWS'],
+        seniority: 'mid',
+        maxCapacity: 100,
+        department: 'Backend'
+    },
+    {
+        email: 'carol.dev@company.com',
+        name: 'Carol Martinez',
+        role: 'engineer',
+        password: '12345',
+        skills: ['React', 'Vue.js', 'UI/UX'],
+        seniority: 'junior',
+        maxCapacity: 50,
+        department: 'Frontend'
+    }
+];
+
+const projects = [
+    {
+        name: 'E-commerce Platform',
+        description: 'Build a modern e-commerce platform with React and Node.js',
+        startDate: new Date('2025-08-01'),
+        endDate: new Date('2025-12-31'),
+        requiredSkills: ['React', 'Node.js', 'MongoDB'],
+        teamSize: 3,
+        status: 'planning'
+    },
+    {
+        name: 'Analytics Dashboard',
+        description: 'Create a real-time analytics dashboard',
+        startDate: new Date('2025-09-01'),
+        endDate: new Date('2025-11-30'),
+        requiredSkills: ['Python', 'React', 'AWS'],
+        teamSize: 2,
+        status: 'planning'
+    }
+];
+
+router.post('/', async (req, res) => {
+    try {
+        console.log('Starting seed process...');
+        
+        // Clear existing data
+        console.log('Clearing existing data...');
+        await User.deleteMany({});
+        await Project.deleteMany({});
+        await Assignment.deleteMany({});
+        console.log('Existing data cleared successfully');
+
+        // Create managers with hashed passwords
+        console.log('Creating managers...');
+        const hashedPassword = await bcrypt.hash('password123', 10);
+        const createdManagers = await Promise.all(
+            managers.map(manager => User.create({
+                ...manager,
+                password: hashedPassword
+            }))
+        );
+        console.log('Managers created successfully:', createdManagers);
+
+        // Create engineers with hashed passwords
+        const createdEngineers = await Promise.all(
+            engineers.map(engineer => User.create({
+                ...engineer,
+                password: hashedPassword
+            }))
+        );
+
+        // Create projects with manager reference
+        const createdProjects = await Promise.all(
+            projects.map(project => Project.create({
+                ...project,
+                managerId: createdManagers[0]._id
+            }))
+        );
+
+        // Create assignments
+        const assignments = [
+            {
+                engineerId: createdEngineers[0]._id,
+                projectId: createdProjects[0]._id,
+                allocationPercentage: 70,
+                startDate: new Date('2025-08-01'),
+                endDate: new Date('2025-10-31'),
+                role: 'Tech Lead'
+            },
+            {
+                engineerId: createdEngineers[1]._id,
+                projectId: createdProjects[0]._id,
+                allocationPercentage: 50,
+                startDate: new Date('2025-08-01'),
+                endDate: new Date('2025-12-31'),
+                role: 'Backend Developer'
+            },
+            {
+                engineerId: createdEngineers[2]._id,
+                projectId: createdProjects[1]._id,
+                allocationPercentage: 40,
+                startDate: new Date('2025-09-01'),
+                endDate: new Date('2025-11-30'),
+                role: 'Frontend Developer'
+            }
+        ];
+
+        await Assignment.insertMany(assignments);
+
+        res.json({ message: 'Database seeded successfully!' });
+    } catch (error) {
+        console.error('Error seeding database:', error);
+        res.status(500).json({ error: 'Error seeding database' });
+    }
+});
+
+module.exports = router;

@@ -1,0 +1,8 @@
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useStore } from '../store';
+import { useAuth } from '../store/auth';
+import { SkillTag } from '../components/ui/skill-tag';
+import { CapacityBar } from '../components/ui/capacity-bar';
+import { SeniorityBadge } from '../components/ui/seniority-badge';
+import axios from 'axios';

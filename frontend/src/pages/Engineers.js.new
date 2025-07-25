@@ -1,0 +1,58 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useAuth } from '../store/auth';
+import { useNavigate } from 'react-router-dom';
+import { useStore } from '../store';
+import { SkillTagList } from '../components/ui/skill-tag';
+import { CapacityBar } from '../components/ui/capacity-bar';
+import { SeniorityBadge } from '../components/ui/seniority-badge';
+
+function Engineers() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [engineers, setEngineers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [currentEngineerId, setCurrentEngineerId] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [newEngineer, setNewEngineer] = useState({
+    name: '',
+    email: '',
+    skills: '',
+    seniority: 'junior',
+    availability: 100,
+    currentProject: ''
+  });
+
+  useEffect(() => {
+    fetchEngineers();
+  }, []);
+
+  const fetchEngineers = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/engineers');
+      setEngineers(response.data);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching engineers:', error);
+      setLoading(false);
+    }
+  };
+
+  // Rest of your component code...
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Engineers</h1>
+        {user?.isManager && (
+          // Your JSX for manager actions
+        )}
+      </div>
+      {/* Rest of your JSX */}
+    </div>
+  );
+}
+
+export default Engineers;
